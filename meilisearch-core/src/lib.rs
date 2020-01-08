@@ -14,6 +14,7 @@ mod ranked_map;
 mod raw_document;
 mod reordered_attrs;
 mod update;
+mod settings;
 pub mod criterion;
 pub mod raw_indexer;
 pub mod serde;
