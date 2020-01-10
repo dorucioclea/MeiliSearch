@@ -159,6 +159,8 @@ pub fn apply_documents_addition<'a, 'b>(
         None => fst::Set::default(),
     };
 
+    let mut fields_map =  main_store.fields_map(writer)?.unwrap_or_default();
+
     // 3. index the documents fields in the stores
     let mut indexer = RawIndexer::new(stop_words);
 
@@ -170,6 +172,7 @@ pub fn apply_documents_addition<'a, 'b>(
             document_fields_counts: documents_fields_counts_store,
             indexer: &mut indexer,
             ranked_map: &mut ranked_map,
+            fields_map: &mut fields_map,
             document_id,
         };
 
@@ -260,6 +263,8 @@ pub fn apply_documents_partial_addition<'a, 'b>(
         None => fst::Set::default(),
     };
 
+    let mut fields_map =  main_store.fields_map(writer)?.unwrap_or_default();
+
     // 3. index the documents fields in the stores
     let mut indexer = RawIndexer::new(stop_words);
 
@@ -271,6 +276,7 @@ pub fn apply_documents_partial_addition<'a, 'b>(
             document_fields_counts: documents_fields_counts_store,
             indexer: &mut indexer,
             ranked_map: &mut ranked_map,
+            fields_map: &mut fields_map,
             document_id,
         };
 
@@ -302,6 +308,7 @@ pub fn reindex_all_documents(
     };
 
     let mut ranked_map = RankedMap::default();
+    let mut fields_map = main_store.fields_map(writer)?.unwrap_or_default();
 
     // 1. retrieve all documents ids
     let mut documents_ids_to_reindex = Vec::new();
@@ -345,6 +352,7 @@ pub fn reindex_all_documents(
                     documents_fields_counts_store,
                     &mut indexer,
                     &mut ranked_map,
+                    &mut fields_map,
                     &value,
                 )?;
             }
