@@ -1,14 +1,13 @@
-use std::collections::{HashMap, BTreeSet};
+use std::collections::HashMap;
 
 use fst::{set::OpBuilder, SetBuilder};
 use sdset::{duo::Union, SetOperation};
 use serde::{Deserialize, Serialize};
-use meilisearch_schema::{Schema, DISPLAYED, INDEXED};
 
 use crate::database::{MainT, UpdateT};
 use crate::database::{UpdateEvent, UpdateEventsEmitter};
 use crate::raw_indexer::RawIndexer;
-use crate::serde::{extract_document_id, serialize_value, Deserializer, Serializer};
+use crate::serde::{extract_document_id, serialize_value_with_id, Deserializer, Serializer};
 use crate::store;
 use crate::update::{apply_documents_deletion, next_update_id, Update};
 use crate::{Error, MResult, RankedMap};
@@ -119,16 +118,11 @@ pub fn apply_documents_addition<'a, 'b>(
         None => return Err(Error::SchemaMissing),
     };
 
-    if let Some(new_schema) = lazy_new_schema(&schema, &addition) {
-        main_store.put_schema(writer, &new_schema)?;
-        schema = new_schema;
-    }
-
-    let identifier = schema.identifier_name();
+    let identifier = schema.identifier();
 
     // 1. store documents ids for future deletion
     for document in addition {
-        let document_id = match extract_document_id(identifier, &document)? {
+        let document_id = match extract_document_id(&identifier, &document)? {
             Some(id) => id,
             None => return Err(Error::MissingDocumentId),
         };
@@ -159,20 +153,17 @@ pub fn apply_documents_addition<'a, 'b>(
         None => fst::Set::default(),
     };
 
-    let mut fields_map =  main_store.fields_map(writer)?.unwrap_or_default();
-
     // 3. index the documents fields in the stores
     let mut indexer = RawIndexer::new(stop_words);
 
     for (document_id, document) in documents_additions {
         let serializer = Serializer {
             txn: writer,
-            schema: &schema,
+            schema: &mut schema,
             document_store: documents_fields_store,
             document_fields_counts: documents_fields_counts_store,
             indexer: &mut indexer,
             ranked_map: &mut ranked_map,
-            fields_map: &mut fields_map,
             document_id,
         };
 
@@ -206,16 +197,11 @@ pub fn apply_documents_partial_addition<'a, 'b>(
         None => return Err(Error::SchemaMissing),
     };
 
-    if let Some(new_schema) = lazy_new_schema(&schema, &addition) {
-        main_store.put_schema(writer, &new_schema)?;
-        schema = new_schema;
-    }
-
-    let identifier = schema.identifier_name();
+    let identifier = schema.identifier();
 
     // 1. store documents ids for future deletion
     for mut document in addition {
-        let document_id = match extract_document_id(identifier, &document)? {
+        let document_id = match extract_document_id(&identifier, &document)? {
             Some(id) => id,
             None => return Err(Error::MissingDocumentId),
         };
@@ -263,20 +249,17 @@ pub fn apply_documents_partial_addition<'a, 'b>(
         None => fst::Set::default(),
     };
 
-    let mut fields_map =  main_store.fields_map(writer)?.unwrap_or_default();
-
     // 3. index the documents fields in the stores
     let mut indexer = RawIndexer::new(stop_words);
 
     for (document_id, document) in documents_additions {
         let serializer = Serializer {
             txn: writer,
-            schema: &schema,
+            schema: &mut schema,
             document_store: documents_fields_store,
             document_fields_counts: documents_fields_counts_store,
             indexer: &mut indexer,
             ranked_map: &mut ranked_map,
-            fields_map: &mut fields_map,
             document_id,
         };
 
@@ -308,7 +291,6 @@ pub fn reindex_all_documents(
     };
 
     let mut ranked_map = RankedMap::default();
-    let mut fields_map = main_store.fields_map(writer)?.unwrap_or_default();
 
     // 1. retrieve all documents ids
     let mut documents_ids_to_reindex = Vec::new();
@@ -337,23 +319,22 @@ pub fn reindex_all_documents(
 
         for document_id in documents_ids {
             for result in documents_fields_store.document_fields(writer, *document_id)? {
-                let (attr, bytes) = result?;
+                let (field_id, bytes) = result?;
                 let value: serde_json::Value = serde_json::from_slice(bytes)?;
-                ram_store.insert((document_id, attr), value);
+                ram_store.insert((document_id, field_id), value);
             }
 
-            for ((docid, attr), value) in ram_store.drain() {
-                serialize_value(
+            for ((docid, field_id), value) in ram_store.drain() {
+                serialize_value_with_id(
                     writer,
-                    attr,
-                    schema.props(attr),
+                    field_id,
+                    &schema,
                     *docid,
                     documents_fields_store,
                     documents_fields_counts_store,
                     &mut indexer,
                     &mut ranked_map,
-                    &mut fields_map,
-                    &value,
+                    &value
                 )?;
             }
         }
@@ -427,31 +408,4 @@ pub fn write_documents_addition_index(
     main_store.put_number_of_documents(writer, |old| old + number_of_inserted_documents as u64)?;
 
     Ok(())
-}
-
-pub fn lazy_new_schema(
-    schema: &Schema,
-    documents: &[HashMap<String, serde_json::Value>],
-) -> Option<Schema> {
-    let mut attributes_to_add = BTreeSet::new();
-
-    for document in documents {
-        for (key, _) in document {
-            if schema.attribute(key).is_none() {
-                attributes_to_add.insert(key);
-            }
-        }
-    }
-
-    if attributes_to_add.is_empty() {
-        return None
-    }
-
-    let mut schema_builder = schema.to_builder();
-    for attribute in attributes_to_add {
-        schema_builder.new_attribute(attribute, DISPLAYED | INDEXED);
-    }
-    let schema = schema_builder.build();
-
-    Some(schema)
 }
