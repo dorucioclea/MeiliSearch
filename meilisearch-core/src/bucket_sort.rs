@@ -140,9 +140,9 @@ where
             }
         }
     }
-
+    let schema = main_store.schema(reader)?.unwrap();
     let iter = raw_documents.into_iter().skip(range.start).take(range.len());
-    let iter = iter.map(|rd| Document::from_raw(rd, &automatons, &arena, searchable_attrs.as_ref()));
+    let iter = iter.map(|rd| Document::from_raw(rd, &automatons, &arena, searchable_attrs.as_ref(), &schema));
 
     Ok(iter.collect())
 }
@@ -290,6 +290,7 @@ where
     // once we classified the documents related to the current
     // automatons we save that as the next valid result
     let mut seen = BufferedDistinctMap::new(&mut distinct_map);
+    let schema = main_store.schema(reader)?.unwrap();
 
     let mut documents = Vec::with_capacity(range.len());
     for raw_document in raw_documents.into_iter().skip(distinct_raw_offset) {
@@ -306,7 +307,7 @@ where
             };
 
             if distinct_accepted && seen.len() > range.start {
-                documents.push(Document::from_raw(raw_document, &automatons, &arena, searchable_attrs.as_ref()));
+                documents.push(Document::from_raw(raw_document, &automatons, &arena, searchable_attrs.as_ref(), &schema));
                 if documents.len() == range.len() {
                     break;
                 }

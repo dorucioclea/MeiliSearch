@@ -14,7 +14,6 @@ mod ranked_map;
 mod raw_document;
 mod reordered_attrs;
 mod update;
-// mod fields_map;
 pub mod settings;
 pub mod criterion;
 pub mod raw_indexer;
@@ -25,13 +24,14 @@ pub use self::database::{BoxUpdateFn, Database, MainT, UpdateT};
 pub use self::error::{Error, MResult};
 pub use self::number::{Number, ParseNumberError};
 pub use self::ranked_map::RankedMap;
-// pub use self::fields_map::FieldsMap;
 pub use self::raw_document::RawDocument;
 pub use self::store::Index;
 pub use self::update::{EnqueuedUpdateResult, ProcessedUpdateResult, UpdateStatus, UpdateType};
 pub use meilisearch_types::{DocIndex, DocumentId, Highlight};
+use meilisearch_schema::Schema;
 
 use compact_arena::SmallArena;
+use log::{error, trace};
 use crate::bucket_sort::{QueryWordAutomaton, PostingsListView};
 use crate::levenshtein::prefix_damerau_levenshtein;
 use crate::reordered_attrs::ReorderedAttrs;
@@ -50,6 +50,7 @@ fn highlights_from_raw_document<'a, 'tag, 'txn>(
     automatons: &[QueryWordAutomaton],
     arena: &SmallArena<'tag, PostingsListView<'txn>>,
     searchable_attrs: Option<&ReorderedAttrs>,
+    schema: &Schema,
 ) -> Vec<Highlight>
 {
     let mut highlights = Vec::new();
@@ -69,6 +70,15 @@ fn highlights_from_raw_document<'a, 'tag, 'txn>(
             let attribute = searchable_attrs
                 .and_then(|sa| sa.reverse(di.attribute))
                 .unwrap_or(di.attribute);
+
+            let attribute = match schema.indexed_pos_to_field_id(attribute) {
+                Some(field_id) => field_id.0,
+                None => {
+                    error!("Cannot convert indexed_pos {} to field_id", attribute);
+                    trace!("Schema is compronized; {:?}", schema);
+                    continue
+                }
+            };
 
             let highlight = Highlight {
                 attribute: attribute,
@@ -90,6 +100,7 @@ impl Document {
         automatons: &[QueryWordAutomaton],
         arena: &SmallArena<'tag, PostingsListView<'txn>>,
         searchable_attrs: Option<&ReorderedAttrs>,
+        schema: &Schema,
     ) -> Document
     {
         let highlights = highlights_from_raw_document(
@@ -97,6 +108,7 @@ impl Document {
             automatons,
             arena,
             searchable_attrs,
+            schema,
         );
 
         Document { id: raw_document.id, highlights }
@@ -108,6 +120,7 @@ impl Document {
         automatons: &[QueryWordAutomaton],
         arena: &SmallArena<'tag, PostingsListView<'txn>>,
         searchable_attrs: Option<&ReorderedAttrs>,
+        schema: &Schema,
     ) -> Document
     {
         use crate::bucket_sort::SimpleMatch;
@@ -117,6 +130,7 @@ impl Document {
             automatons,
             arena,
             searchable_attrs,
+            schema,
         );
 
         let mut matches = Vec::new();
@@ -124,6 +138,15 @@ impl Document {
             let attribute = searchable_attrs
                 .and_then(|sa| sa.reverse(sm.attribute))
                 .unwrap_or(sm.attribute);
+
+            let attribute = match schema.indexed_pos_to_field_id(attribute) {
+                Some(field_id) => field_id.0,
+                None => {
+                    error!("Cannot convert indexed_pos {} to field_id", attribute);
+                    trace!("Schema is compronized; {:?}", schema);
+                    continue
+                }
+            };
 
             matches.push(SimpleMatch { attribute, ..sm });
         }
