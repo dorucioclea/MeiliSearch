@@ -170,6 +170,8 @@ pub fn apply_documents_addition<'a, 'b>(
         document.serialize(serializer)?;
     }
 
+
+
     write_documents_addition_index(
         writer,
         main_store,
@@ -178,7 +180,10 @@ pub fn apply_documents_addition<'a, 'b>(
         &ranked_map,
         number_of_inserted_documents,
         indexer,
-    )
+    )?;
+
+    main_store.put_schema(writer, &schema).unwrap();
+    Ok(())
 }
 
 pub fn apply_documents_partial_addition<'a, 'b>(
@@ -266,6 +271,8 @@ pub fn apply_documents_partial_addition<'a, 'b>(
         document.serialize(serializer)?;
     }
 
+
+
     write_documents_addition_index(
         writer,
         main_store,
@@ -274,7 +281,10 @@ pub fn apply_documents_partial_addition<'a, 'b>(
         &ranked_map,
         number_of_inserted_documents,
         indexer,
-    )
+    )?;
+
+    main_store.put_schema(writer, &schema).unwrap();
+    Ok(())
 }
 
 pub fn reindex_all_documents(
@@ -350,6 +360,8 @@ pub fn reindex_all_documents(
             indexer,
         )?;
     }
+
+    main_store.put_schema(writer, &schema).unwrap();
 
     Ok(())
 }
