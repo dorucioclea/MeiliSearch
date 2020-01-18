@@ -29,6 +29,7 @@ pub use self::store::Index;
 pub use self::update::{EnqueuedUpdateResult, ProcessedUpdateResult, UpdateStatus, UpdateType};
 pub use meilisearch_types::{DocIndex, DocumentId, Highlight};
 use meilisearch_schema::Schema;
+pub use fst::Error as FstError;
 
 use compact_arena::SmallArena;
 use log::{error, trace};
