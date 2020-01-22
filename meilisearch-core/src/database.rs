@@ -363,9 +363,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "description"],
-                    "attributes_displayed": ["name", "description"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "description"],
+                    "attributesDisplayed": ["name", "description"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -423,9 +423,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "description"],
-                    "attributes_displayed": ["name", "description"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "description"],
+                    "attributesDisplayed": ["name", "description"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -482,9 +482,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name"],
-                    "attributes_displayed": ["name"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name"],
+                    "attributesDisplayed": ["name"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -534,9 +534,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "description"],
-                    "attributes_displayed": ["name", "description"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "description"],
+                    "attributesDisplayed": ["name", "description"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -572,9 +572,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "description", "age", "sex"],
-                    "attributes_displayed": ["name", "description", "age", "sex"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "description", "age", "sex"],
+                    "attributesDisplayed": ["name", "description", "age", "sex"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -639,9 +639,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "description", "city", "age", "sex"],
-                    "attributes_displayed": ["name", "description", "city", "age", "sex"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "description", "city", "age", "sex"],
+                    "attributesDisplayed": ["name", "description", "city", "age", "sex"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -678,9 +678,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "description"],
-                    "attributes_displayed": ["name", "description"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "description"],
+                    "attributesDisplayed": ["name", "description"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -755,9 +755,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "description"],
-                    "attributes_displayed": ["name", "description", "id"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "description"],
+                    "attributesDisplayed": ["name", "description", "id"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -891,9 +891,9 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "description"],
-                    "attributes_displayed": ["name", "description"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "description"],
+                    "attributesDisplayed": ["name", "description"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
@@ -955,7 +955,7 @@ mod tests {
         let settings = {
             let data = r#"
                 {
-                    "ranking_rules": [
+                    "rankingRules": [
                         "_typo",
                         "_words",
                         "_proximity",
@@ -964,9 +964,9 @@ mod tests {
                         "_exact",
                         "dsc(release_date)"
                     ],
-                    "attribute_identifier": "id",
-                    "attributes_searchable": ["name", "release_date"],
-                    "attributes_displayed": ["name", "release_date"]
+                    "attributeIdentifier": "id",
+                    "attributesSearchable": ["name", "release_date"],
+                    "attributesDisplayed": ["name", "release_date"]
                 }
             "#;
             let settings: Settings = serde_json::from_str(data).unwrap();
