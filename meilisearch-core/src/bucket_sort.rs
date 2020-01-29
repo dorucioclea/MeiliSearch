@@ -25,7 +25,7 @@ use crate::criterion::{Criteria, Context, ContextMut};
 use crate::distinct_map::{BufferedDistinctMap, DistinctMap};
 use crate::raw_document::RawDocument;
 use crate::{database::MainT, reordered_attrs::ReorderedAttrs};
-use crate::{store, Document, DocumentId, MResult};
+use crate::{store, Document, DocumentId, MResult, Error};
 
 pub fn bucket_sort<'c, FI>(
     reader: &heed::RoTxn<MainT>,
@@ -140,7 +140,7 @@ where
             }
         }
     }
-    let schema = main_store.schema(reader)?.unwrap();
+    let schema = main_store.schema(reader)?.ok_or(Error::SchemaMissing)?;
     let iter = raw_documents.into_iter().skip(range.start).take(range.len());
     let iter = iter.map(|rd| Document::from_raw(rd, &automatons, &arena, searchable_attrs.as_ref(), &schema));
 
@@ -290,7 +290,7 @@ where
     // once we classified the documents related to the current
     // automatons we save that as the next valid result
     let mut seen = BufferedDistinctMap::new(&mut distinct_map);
-    let schema = main_store.schema(reader)?.unwrap();
+    let schema = main_store.schema(reader)?.ok_or(Error::SchemaMissing)?;
 
     let mut documents = Vec::with_capacity(range.len());
     for raw_document in raw_documents.into_iter().skip(distinct_raw_offset) {

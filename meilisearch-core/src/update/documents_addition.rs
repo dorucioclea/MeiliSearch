@@ -170,8 +170,6 @@ pub fn apply_documents_addition<'a, 'b>(
         document.serialize(serializer)?;
     }
 
-
-
     write_documents_addition_index(
         writer,
         main_store,
@@ -182,7 +180,7 @@ pub fn apply_documents_addition<'a, 'b>(
         indexer,
     )?;
 
-    main_store.put_schema(writer, &schema).unwrap();
+    main_store.put_schema(writer, &schema)?;
     Ok(())
 }
 
@@ -216,7 +214,7 @@ pub fn apply_documents_partial_addition<'a, 'b>(
             reader: writer,
             documents_fields: documents_fields_store,
             schema: &schema,
-            attributes: None,
+            fields: None,
         };
 
         // retrieve the old document and
@@ -271,8 +269,6 @@ pub fn apply_documents_partial_addition<'a, 'b>(
         document.serialize(serializer)?;
     }
 
-
-
     write_documents_addition_index(
         writer,
         main_store,
@@ -283,7 +279,7 @@ pub fn apply_documents_partial_addition<'a, 'b>(
         indexer,
     )?;
 
-    main_store.put_schema(writer, &schema).unwrap();
+    main_store.put_schema(writer, &schema)?;
     Ok(())
 }
 
@@ -361,7 +357,7 @@ pub fn reindex_all_documents(
         )?;
     }
 
-    main_store.put_schema(writer, &schema).unwrap();
+    main_store.put_schema(writer, &schema)?;
 
     Ok(())
 }
